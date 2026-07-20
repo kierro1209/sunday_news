@@ -8,9 +8,10 @@ from .config import Config
 
 
 def _headers(cfg: Config) -> dict:
+    key = cfg.supabase_service_role_key.strip()
     return {
-        "apikey": cfg.supabase_service_role_key,
-        "Authorization": f"Bearer {cfg.supabase_service_role_key}",
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
     }
 
