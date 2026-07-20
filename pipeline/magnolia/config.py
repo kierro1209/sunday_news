@@ -2,9 +2,11 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+# Only load .env if it exists (local dev); GitHub Actions passes env vars directly
+env_file = Path(__file__).resolve().parent.parent / ".env"
+if env_file.exists():
+    from dotenv import load_dotenv
+    load_dotenv(env_file)
 
 
 @dataclass(frozen=True)
@@ -28,12 +30,14 @@ def load_config(require_delivery: bool = True) -> Config:
     env_path = Path(__file__).resolve().parent.parent / ".env"
     missing: list[str] = []
     empty: list[str] = []
+    
     for name in required:
         value = os.environ.get(name)
         if value is None:
             missing.append(name)
         elif not value.strip():
             empty.append(name)
+    
     if missing or empty:
         parts = []
         if missing:
@@ -53,6 +57,16 @@ def load_config(require_delivery: bool = True) -> Config:
             parts.append(f"Fill them in {env_path} (see pipeline/.env.example).")
             if empty and not missing:
                 parts.append("If you edited .env in the editor, save the file first - Python reads from disk.")
+        
+        # Debug: show what we found
+        print("[DEBUG] Env var check:")
+        for name in required:
+            val = os.environ.get(name)
+            if val is None:
+                print(f"  {name}: NOT SET")
+            else:
+                print(f"  {name}: {len(val)} chars, first 20: {val[:20]!r}")
+        
         raise SystemExit("\n".join(parts))
 
     def clean_secret(val: str) -> str:
