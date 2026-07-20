@@ -22,16 +22,17 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    cfg = load_config()
+    cfg = load_config(require_delivery=not args.dry_run)
 
     print(f"[run] building {args.kind} edition")
     prefs, feedback = {}, []
-    try:
-        prefs = load_preferences(cfg)
-        feedback = load_recent_feedback(cfg)
-        print(f"[run] loaded prefs ({len(prefs)} keys) and {len(feedback)} feedback rows")
-    except Exception as exc:  # noqa: BLE001 - publish anyway on a fresh install
-        print(f"[run] could not load reader context (continuing without): {exc}")
+    if cfg.supabase_url:
+        try:
+            prefs = load_preferences(cfg)
+            feedback = load_recent_feedback(cfg)
+            print(f"[run] loaded prefs ({len(prefs)} keys) and {len(feedback)} feedback rows")
+        except Exception as exc:  # noqa: BLE001 - publish anyway on a fresh install
+            print(f"[run] could not load reader context (continuing without): {exc}")
 
     edition = build_edition(cfg, args.kind, prefs, feedback)
 
