@@ -62,11 +62,11 @@ def load_config(require_delivery: bool = True) -> Config:
 
     return Config(
         gemini_api_key=clean_secret(os.environ["GEMINI_API_KEY"]),
-        supabase_url=os.environ.get("SUPABASE_URL", "").rstrip("/"),
+        supabase_url=clean_secret(os.environ.get("SUPABASE_URL", "")).rstrip("/"),
         supabase_service_role_key=clean_secret(os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")),
         resend_api_key=clean_secret(os.environ.get("RESEND_API_KEY", "")),
-        email_from=os.environ.get("EMAIL_FROM", "The Magnolia Times <onboarding@resend.dev>").strip(),
+        email_from=clean_secret(os.environ.get("EMAIL_FROM", "The Magnolia Times <onboarding@resend.dev>")),
         email_to=clean_secret(os.environ.get("EMAIL_TO", "")),
-        web_app_url=os.environ.get("WEB_APP_URL", "").rstrip("/"),
-        gemini_model=os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview").strip(),
+        web_app_url=clean_secret(os.environ.get("WEB_APP_URL", "")).rstrip("/"),
+        gemini_model=clean_secret(os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview")),
     )
