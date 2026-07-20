@@ -1,0 +1,426 @@
+:root {
+  --paper: #fdfbf4;
+  --paper-edge: #f4f1e8;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-faint: #8a8a8a;
+  --rule: #1a1a1a;
+  --rule-soft: #d8d2bf;
+  --accent: #8a6d3b;
+  --accent-soft: #c9b98a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper-edge);
+  color: var(--ink);
+  font-family: var(--font-body), Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sheet {
+  max-width: 1060px;
+  margin: 24px auto;
+  background: var(--paper);
+  border: 1px solid var(--rule-soft);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
+  padding: 36px 44px 48px;
+}
+
+/* --- masthead ------------------------------------------------------------ */
+
+.masthead {
+  text-align: center;
+  border-bottom: 4px double var(--rule);
+  padding-bottom: 14px;
+}
+
+.masthead .dateline {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.masthead h1 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(38px, 7vw, 64px);
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.masthead .motto {
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.topnav {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--rule);
+  padding: 8px 0;
+  margin-bottom: 20px;
+}
+
+.topnav a,
+.topnav button {
+  color: var(--ink);
+  text-decoration: none;
+  background: none;
+  border: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.topnav a:hover,
+.topnav button:hover {
+  color: var(--accent);
+}
+
+/* --- sections & articles -------------------------------------------------- */
+
+.section {
+  border-top: 2px solid var(--rule);
+  margin-top: 26px;
+  padding-top: 10px;
+  break-inside: avoid-column;
+}
+
+.kicker {
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.section h2 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 30px;
+  margin: 2px 0 16px;
+}
+
+.section-columns {
+  column-count: 2;
+  column-gap: 36px;
+  column-rule: 1px solid var(--rule-soft);
+}
+
+@media (max-width: 760px) {
+  .section-columns {
+    column-count: 1;
+  }
+  .sheet {
+    padding: 20px 18px 32px;
+  }
+}
+
+.article {
+  break-inside: avoid;
+  margin-bottom: 26px;
+}
+
+.article h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 21px;
+  line-height: 1.25;
+  margin: 0 0 4px;
+}
+
+.article h3 a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.article h3 a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+}
+
+.byline {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
+  padding: 1px 6px;
+  margin-left: 8px;
+  vertical-align: 2px;
+}
+
+.summary {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.body-text {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.body-text p {
+  margin: 0 0 10px;
+}
+
+.why-chosen {
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-style: italic;
+  border-left: 2px solid var(--accent-soft);
+  padding-left: 8px;
+  margin-top: 8px;
+}
+
+/* --- interaction row (feedback + notes) ----------------------------------- */
+
+.article-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.article-tools button {
+  background: none;
+  border: 1px solid var(--rule-soft);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.article-tools button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.article-tools button.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.notes-area {
+  width: 100%;
+  min-height: 76px;
+  margin-top: 8px;
+  font-family: var(--font-body), Georgia, serif;
+  font-size: 14px;
+  line-height: 24px;
+  padding: 6px 10px;
+  color: var(--ink);
+  border: 1px solid var(--rule-soft);
+  background: repeating-linear-gradient(
+    var(--paper),
+    var(--paper) 23px,
+    var(--rule-soft) 23px,
+    var(--rule-soft) 24px
+  );
+  resize: vertical;
+}
+
+.notes-area:focus {
+  outline: 1px solid var(--accent);
+}
+
+/* --- forms (login, preferences) ------------------------------------------- */
+
+.card {
+  max-width: 420px;
+  margin: 8vh auto;
+  background: var(--paper);
+  border: 1px solid var(--rule-soft);
+  padding: 34px 38px;
+  text-align: center;
+}
+
+.card h1 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 34px;
+  margin: 0 0 2px;
+}
+
+.field {
+  text-align: left;
+  margin: 14px 0;
+}
+
+.field label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  font-family: var(--font-body), Georgia, serif;
+  font-size: 15px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule-soft);
+  background: #fff;
+  color: var(--ink);
+}
+
+.btn {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 10px 26px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.btn:hover {
+  background: var(--accent);
+}
+
+.btn-quiet {
+  background: none;
+  color: var(--ink-soft);
+  border: 1px solid var(--rule-soft);
+}
+
+.error-note {
+  color: #a33;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.status-note {
+  color: var(--accent);
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.center-note {
+  text-align: center;
+  color: var(--ink-soft);
+  font-style: italic;
+  padding: 60px 0;
+}
+
+.archive-list {
+  list-style: none;
+  padding: 0;
+}
+
+.archive-list li {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: 14px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.archive-list a {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 20px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.archive-list a:hover {
+  color: var(--accent);
+}
+
+.footer-rule {
+  border-top: 4px double var(--rule);
+  margin-top: 34px;
+  padding-top: 10px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 1px;
+}
+
+/* --- print / PDF export ---------------------------------------------------- */
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .sheet {
+    max-width: none;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .topnav,
+  .article-tools button,
+  .no-print {
+    display: none !important;
+  }
+
+  .section {
+    break-inside: auto;
+  }
+
+  .article {
+    break-inside: avoid;
+  }
+
+  /* keep the ruled note space (and anything typed) in the PDF */
+  .notes-area {
+    display: block;
+    border: 1px solid #bbb;
+    background: repeating-linear-gradient(
+      #fff,
+      #fff 23px,
+      #ccc 23px,
+      #ccc 24px
+    );
+    min-height: 96px;
+    resize: none;
+  }
+
+  a {
+    color: var(--ink);
+  }
+}
+
+@page {
+  size: letter;
+  margin: 14mm;
+}
