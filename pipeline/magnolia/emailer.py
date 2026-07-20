@@ -11,12 +11,41 @@ from .config import Config
 
 
 def _md_to_html(text: str) -> str:
-    """Tiny markdown subset (bold, italics, paragraphs) safe for email."""
+    """Tiny markdown subset (links, bold, italics, paragraphs) safe for email."""
     out = html.escape(text or "")
+    out = re.sub(
+        r"\[([^\]]+)\]\((https?://[^)\s]+)\)",
+        r'<a href="\2" style="color:#8a6d3b;">\1</a>',
+        out,
+    )
     out = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", out)
     out = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", out)
     paragraphs = [p.strip().replace("\n", "<br/>") for p in out.split("\n\n") if p.strip()]
     return "".join(f'<p style="margin:0 0 10px;">{p}</p>' for p in paragraphs)
+
+
+def _meta_line(article: dict) -> str:
+    """Byline row: authors (linked when known), publication, date, source link."""
+    bits = []
+    authors = article.get("authors") or []
+    if authors:
+        rendered = []
+        for author in authors:
+            name = html.escape(author.get("name", ""))
+            if author.get("url"):
+                rendered.append(f'<a href="{html.escape(author["url"])}" style="color:#666;">{name}</a>')
+            else:
+                rendered.append(name)
+        bits.append("By " + ", ".join(rendered))
+    elif article.get("byline"):
+        bits.append(html.escape(article["byline"]))
+    if article.get("publication"):
+        bits.append(html.escape(article["publication"]))
+    if article.get("published"):
+        bits.append(html.escape(article["published"]))
+    if article.get("url"):
+        bits.append(f'<a href="{html.escape(article["url"])}" style="color:#8a6d3b;">original source</a>')
+    return " &middot; ".join(bits)
 
 
 def _article_html(article: dict) -> str:
@@ -39,7 +68,7 @@ def _article_html(article: dict) -> str:
         {headline}{diff_badge}
       </h3>
       <div style="font-size:12px;color:#666;font-style:italic;margin:0 0 8px;">
-        {html.escape(article.get('byline', ''))}
+        {_meta_line(article)}
       </div>
       <div style="font-size:14px;line-height:1.55;color:#222;">
         {_md_to_html(article.get('body', ''))}

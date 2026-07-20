@@ -20,10 +20,14 @@ export default function Login() {
     const { error: err } =
       mode === "signin"
         ? await auth.signInWithPassword({ email, password })
-        : await auth.signUp({ email, password });
+        : await auth.signUp({
+            email,
+            password,
+            options: { emailRedirectTo: window.location.origin },
+          });
     if (err) setError(err.message);
     else if (mode === "signup")
-      setNotice("Account created. If email confirmation is on, check your inbox first.");
+      setNotice("Account created. Check your inbox for the confirmation link.");
     setBusy(false);
   }
 

@@ -1,9 +1,18 @@
 // Mirrors docs/edition-format.md — keep in sync with the Python pipeline.
 
+export interface ArticleAuthor {
+  name: string;
+  url: string;
+}
+
 export interface Article {
   id: string;
   headline: string;
   byline: string;
+  /* Optional because editions generated before these fields existed lack them. */
+  authors?: ArticleAuthor[];
+  publication?: string;
+  published?: string;
   url: string;
   summary: string;
   body: string;

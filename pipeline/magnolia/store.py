@@ -50,6 +50,38 @@ def load_preferences(cfg: Config) -> dict:
     return merged
 
 
+def load_recent_history(cfg: Config, editions: int = 16) -> list[dict]:
+    """Flatten recent editions into one row per published article, for the
+    editor-in-chief's anti-repetition context."""
+    resp = httpx.get(
+        f"{cfg.supabase_url}/rest/v1/editions",
+        headers=_headers(cfg),
+        params={
+            "select": "kind,edition_date,content",
+            "order": "edition_date.desc",
+            "limit": str(editions),
+        },
+        timeout=30.0,
+    )
+    resp.raise_for_status()
+    history = []
+    for row in resp.json():
+        for section in (row.get("content") or {}).get("sections", []):
+            for article in section.get("articles", []):
+                history.append(
+                    {
+                        "date": row["edition_date"],
+                        "kind": row["kind"],
+                        "section_id": section.get("id", ""),
+                        "headline": article.get("headline", ""),
+                        "url": article.get("url", ""),
+                        "tags": article.get("tags", []),
+                        "difficulty": article.get("difficulty", ""),
+                    }
+                )
+    return history
+
+
 def load_recent_feedback(cfg: Config, limit: int = 40) -> list[dict]:
     resp = httpx.get(
         f"{cfg.supabase_url}/rest/v1/feedback",

@@ -43,9 +43,31 @@ docs/       Edition JSON contract shared by pipeline and web
    (see `.github/workflows/`). The daily job runs at 6:05 AM PT; Sundays it also
    builds the weekly edition.
 
-## How curation learns from you
+## How curation works
 
-Thumbs up/down and comments on articles are stored in the `feedback` table.
-Each morning the pipeline loads your preferences plus your recent feedback and
-includes both in the Gemini curation prompt, so the paper drifts toward what
-you find useful.
+Each run is a two-stage editorial desk. An **editor-in-chief** Gemini call sees
+every section's candidate pool, your saved preferences, your recent thumbs
+up/down feedback, and the history of everything that already ran (so the paper
+neither repeats itself nor jumps around at random). It assigns exactly one story
+per section with a directive and a target difficulty, weighting heavier picks
+toward the Sunday weekly. A **section writer** call then files each article,
+carrying the real source url, author names/links, and publication date through
+from the source metadata.
+
+## Testing the scheduled job
+
+Both workflows have a manual trigger (`workflow_dispatch`), so you don't have to
+wait for the cron:
+
+1. Create a GitHub repo and push this project to it.
+2. In the repo: Settings -> Secrets and variables -> Actions -> New repository
+   secret. Add: `GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
+   `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_TO`, `WEB_APP_URL` (same values as
+   `pipeline/.env`).
+3. Actions tab -> "Daily edition" -> Run workflow -> Run workflow.
+4. The job writes to the same Supabase project your local web app reads from,
+   so once it finishes, refresh `localhost:3000` and the edition is there. The
+   email lands in your inbox too.
+
+The web app never needs the pipeline to run locally — it just reads whatever
+editions exist in Supabase.

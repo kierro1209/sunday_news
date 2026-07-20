@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import html
 import re
+import datetime as dt
 from typing import Callable
 
 import feedparser
@@ -25,6 +26,19 @@ def _clean(text: str, limit: int = 400) -> str:
     return text[:limit]
 
 
+def _entry_authors(entry) -> list[dict]:
+    authors = []
+    for author in entry.get("authors") or []:
+        name = _clean(author.get("name", ""), 100)
+        if name:
+            authors.append({"name": name, "url": author.get("href", "") or ""})
+    if not authors:
+        single = _clean(entry.get("author", ""), 100)
+        if single:
+            authors.append({"name": single, "url": ""})
+    return authors
+
+
 def _from_feed(url: str, source: str, limit: int) -> list[dict]:
     parsed = feedparser.parse(url, request_headers=UA)
     items = []
@@ -36,6 +50,7 @@ def _from_feed(url: str, source: str, limit: int) -> list[dict]:
                 "source": source,
                 "published": entry.get("published", entry.get("updated", "")),
                 "snippet": _clean(entry.get("summary", "")),
+                "authors": _entry_authors(entry),
             }
         )
     return items
@@ -76,6 +91,11 @@ def fetch_hn_ml(limit: int = 20) -> list[dict]:
             "source": "Hacker News",
             "published": hit.get("created_at", ""),
             "snippet": f"{hit.get('points', 0)} points on HN",
+            "authors": (
+                [{"name": hit["author"], "url": f"https://news.ycombinator.com/user?id={hit['author']}"}]
+                if hit.get("author")
+                else []
+            ),
         }
         for hit in resp.json().get("hits", [])
     ]
@@ -89,14 +109,54 @@ STOOQ_SYMBOLS = {
     "^dji": "Dow Jones Industrial Average",
 }
 
+YAHOO_SYMBOLS = {
+    "^GSPC": "S&P 500",
+    "^IXIC": "Nasdaq Composite",
+    "^DJI": "Dow Jones Industrial Average",
+}
+
+
+def _yahoo_snapshot() -> str:
+    lines = []
+    for symbol, name in YAHOO_SYMBOLS.items():
+        resp = httpx.get(
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}",
+            params={"interval": "1d", "range": "5d"},
+            headers={**UA, "Accept": "application/json"},
+            timeout=TIMEOUT,
+        )
+        resp.raise_for_status()
+        result = resp.json()["chart"]["result"][0]
+        closes = result["indicators"]["quote"][0]["close"]
+        timestamps = result["timestamp"]
+        # last two non-null closes
+        pairs = [(timestamps[i], closes[i]) for i in range(len(closes)) if closes[i] is not None]
+        if len(pairs) < 2:
+            continue
+        (_, prev), (date_ts, close) = pairs[-2], pairs[-1]
+        pct = (close - prev) / prev * 100
+        date_str = dt.datetime.utcfromtimestamp(date_ts).strftime("%Y-%m-%d")
+        lines.append(f"{name}: {close:,.2f} ({pct:+.2f}% on {date_str})")
+    return "\n".join(lines)
+
 
 def fetch_market_snapshot() -> str:
-    """Return a plain-text snapshot of major indices from stooq (free, no key)."""
+    """Return a plain-text snapshot of major indices (Yahoo primary, stooq fallback)."""
+    try:
+        snap = _yahoo_snapshot()
+        if snap:
+            print("  [sources] market: yahoo ok")
+            return snap
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [sources] market yahoo FAILED: {exc}")
+
     lines = []
     for symbol, name in STOOQ_SYMBOLS.items():
         try:
             resp = httpx.get(
-                f"https://stooq.com/q/d/l/?s={symbol}&i=d", headers=UA, timeout=TIMEOUT
+                f"https://stooq.com/q/d/l/?s={symbol}&i=d",
+                headers={**UA, "Referer": "https://stooq.com/"},
+                timeout=TIMEOUT,
             )
             resp.raise_for_status()
             rows = [r.split(",") for r in resp.text.strip().splitlines()[1:]]
@@ -107,6 +167,8 @@ def fetch_market_snapshot() -> str:
             lines.append(f"{name}: {close:,.2f} ({pct:+.2f}% on {rows[-1][0]})")
         except Exception as exc:  # noqa: BLE001
             print(f"  [sources] stooq {symbol} FAILED: {exc}")
+    if lines:
+        print("  [sources] market: stooq ok")
     return "\n".join(lines)
 
 

@@ -9,7 +9,7 @@ from pathlib import Path
 from .config import load_config
 from .editor import build_edition
 from .emailer import send_edition
-from .store import load_preferences, load_recent_feedback, save_edition
+from .store import load_preferences, load_recent_feedback, load_recent_history, save_edition
 
 
 def main() -> None:
@@ -25,16 +25,20 @@ def main() -> None:
     cfg = load_config(require_delivery=not args.dry_run)
 
     print(f"[run] building {args.kind} edition")
-    prefs, feedback = {}, []
+    prefs, feedback, history = {}, [], []
     if cfg.supabase_url:
         try:
             prefs = load_preferences(cfg)
             feedback = load_recent_feedback(cfg)
-            print(f"[run] loaded prefs ({len(prefs)} keys) and {len(feedback)} feedback rows")
+            history = load_recent_history(cfg)
+            print(
+                f"[run] loaded prefs ({len(prefs)} keys), {len(feedback)} feedback rows, "
+                f"{len(history)} past articles"
+            )
         except Exception as exc:  # noqa: BLE001 - publish anyway on a fresh install
             print(f"[run] could not load reader context (continuing without): {exc}")
 
-    edition = build_edition(cfg, args.kind, prefs, feedback)
+    edition = build_edition(cfg, args.kind, prefs, feedback, history)
 
     if args.dry_run:
         out = Path("edition-preview.json")

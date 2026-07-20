@@ -13,6 +13,12 @@ interface Props {
   initialNote: string;
 }
 
+function formatDate(raw: string): string {
+  const parsed = new Date(raw);
+  if (isNaN(parsed.getTime())) return raw;
+  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 export default function ArticleCard({
   editionId,
   sectionId,
@@ -77,6 +83,7 @@ export default function ArticleCard({
     if (saveTimer.current) clearTimeout(saveTimer.current);
   }, []);
 
+  const authors = article.authors ?? [];
   return (
     <article className="article">
       <h3>
@@ -89,7 +96,38 @@ export default function ArticleCard({
         )}
         {article.difficulty && <span className="badge">{article.difficulty}</span>}
       </h3>
-      <div className="byline">{article.byline}</div>
+      <div className="byline">
+        {authors.length > 0 ? (
+          <>
+            By{" "}
+            {authors.map((author, i) => (
+              <span key={i}>
+                {i > 0 && ", "}
+                {author.url ? (
+                  <a href={author.url} target="_blank" rel="noreferrer">
+                    {author.name}
+                  </a>
+                ) : (
+                  author.name
+                )}
+              </span>
+            ))}
+          </>
+        ) : (
+          article.byline
+        )}
+        {article.publication && <> &middot; {article.publication}</>}
+        {article.published && <> &middot; {formatDate(article.published)}</>}
+        {article.url && (
+          <>
+            {" "}
+            &middot;{" "}
+            <a href={article.url} target="_blank" rel="noreferrer">
+              original source
+            </a>
+          </>
+        )}
+      </div>
       {article.summary && <p className="summary">{article.summary}</p>}
       <Markdown text={article.body} />
       {article.why_chosen && <div className="why-chosen">Why this: {article.why_chosen}</div>}
