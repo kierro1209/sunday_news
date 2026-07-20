@@ -2,58 +2,20 @@
 
 from __future__ import annotations
 
-import sys
-
 import httpx
 
 from .config import Config
 
 
-def _validate_header_value(name: str, value: str) -> None:
-    """Fail fast with a clear, explicit message instead of the cryptic
-    httpx.LocalProtocolError('Illegal header value ...') if anything
-    slipped through config.py's cleaning (config.py should already have
-    stripped these, so hitting this means the key itself contains a byte
-    outside 0x20-0x7E — check for BOM/NBSP from copy-pasting the secret)."""
-    bad = [(i, hex(ord(c))) for i, c in enumerate(value) if ord(c) < 0x20 or ord(c) > 0x7E]
-    if bad:
-        print(
-            f"[store] header '{name}' has {len(bad)} invalid byte(s) at "
-            f"position(s)/codepoint(s): {bad[:10]} (length={len(value)}). "
-            "Re-copy the secret from the Supabase dashboard — it likely has a "
-            "hidden BOM/NBSP character from clipboard/browser paste.",
-            file=sys.stderr,
-        )
-        sys.stderr.flush()
-        raise ValueError(f"Invalid character(s) in header '{name}' — see stderr for positions.")
-
-
 def _headers(cfg: Config) -> dict:
-    """Build request headers with apikey auth."""
-    key = cfg.supabase_service_role_key
-    _validate_header_value("apikey", key)
     return {
-        "apikey": key,
+        "apikey": cfg.supabase_service_role_key,
         "Content-Type": "application/json",
     }
 
 
-def _validate_url(url: str) -> None:
-    bad = [(i, hex(ord(c))) for i, c in enumerate(url) if ord(c) < 0x20 or ord(c) > 0x7E]
-    if bad:
-        print(
-            f"[store] SUPABASE_URL has {len(bad)} invalid byte(s) at "
-            f"position(s)/codepoint(s): {bad[:10]} (length={len(url)}). "
-            "Re-copy the URL from the Supabase dashboard.",
-            file=sys.stderr,
-        )
-        sys.stderr.flush()
-        raise ValueError("Invalid character(s) in SUPABASE_URL — see stderr for positions.")
-
-
 def save_edition(cfg: Config, edition: dict) -> str:
     """Upsert the edition (idempotent re-runs) and return its id."""
-    _validate_url(cfg.supabase_url)
     resp = httpx.post(
         f"{cfg.supabase_url}/rest/v1/editions",
         headers={

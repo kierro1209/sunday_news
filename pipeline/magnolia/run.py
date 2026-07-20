@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-import traceback
 from pathlib import Path
 
 from .config import load_config
@@ -37,10 +35,8 @@ def main() -> None:
                 f"[run] loaded prefs ({len(prefs)} keys), {len(feedback)} feedback rows, "
                 f"{len(history)} past articles"
             )
-        except Exception:  # noqa: BLE001 - publish anyway on a fresh install
-            print("[run] could not load reader context (continuing without). Full traceback:", file=sys.stderr)
-            traceback.print_exc(file=sys.stderr)
-            sys.stderr.flush()
+        except Exception as exc:  # noqa: BLE001 - publish anyway on a fresh install
+            print(f"[run] could not load reader context (continuing without): {exc}")
 
     edition = build_edition(cfg, args.kind, prefs, feedback, history)
 

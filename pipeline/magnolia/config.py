@@ -1,5 +1,4 @@
 import os
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -10,39 +9,14 @@ if env_file.exists():
     load_dotenv(env_file)
 
 
-def _is_bad_char(c: str) -> bool:
-    """Control chars (incl. CR/LF/tab), BOM, NBSP, and other invisible
-    Unicode whitespace that browsers/dashboards silently paste in and that
-    plain .strip() does not catch — but keep ordinary printable space (0x20)."""
-    if c == " ":
-        return False
-    if ord(c) < 32 or ord(c) == 127:  # ASCII control chars + DEL
-        return True
-    if ord(c) > 126:  # any non-ASCII (BOM 0xFEFF, NBSP 0xA0, smart quotes, etc.)
-        return True
-    return False
-
-
 def clean_secret(val: str | None) -> str:
-    """Strip whitespace at the edges, then remove any embedded control/invisible
-    characters that break HTTP headers or URLs (BOM, NBSP, CR/LF, tabs, ...)."""
+    """Strip whitespace/newlines and any non-printable-ASCII characters
+    (BOM, NBSP, smart quotes, ...) that clipboard/dashboard paste can add
+    and that break HTTP headers, while keeping normal spaces."""
     if not val:
         return ""
     val = val.strip()
-    return "".join(c for c in val if not _is_bad_char(c))
-
-
-def _describe(name: str, raw: str | None) -> str:
-    """Non-secret-leaking diagnostic: lengths only, never the value itself."""
-    raw = raw or ""
-    cleaned = clean_secret(raw)
-    if raw == cleaned:
-        return f"{name}: len={len(raw)} clean"
-    bad_positions = [i for i, c in enumerate(raw) if _is_bad_char(c)]
-    return (
-        f"{name}: raw_len={len(raw)} cleaned_len={len(cleaned)} "
-        f"stripped {len(bad_positions)} char(s) at position(s) {bad_positions[:10]}"
-    )
+    return "".join(c for c in val if c == " " or 33 <= ord(c) <= 126)
 
 
 @dataclass(frozen=True)
@@ -92,13 +66,6 @@ def load_config(require_delivery: bool = True) -> Config:
             if empty and not missing:
                 parts.append("If you edited .env in the editor, save the file first - Python reads from disk.")
         raise SystemExit("\n".join(parts))
-
-    # Diagnostic only: reports lengths and stripped-character positions,
-    # never the secret content itself. Always printed so it shows up in CI logs.
-    print("[config] secret sanity check (lengths only, no values printed):", file=sys.stderr)
-    for name in required + ["EMAIL_FROM", "WEB_APP_URL", "GEMINI_MODEL"]:
-        print(f"[config]   {_describe(name, os.environ.get(name))}", file=sys.stderr)
-    sys.stderr.flush()
 
     return Config(
         gemini_api_key=clean_secret(os.environ["GEMINI_API_KEY"]),
