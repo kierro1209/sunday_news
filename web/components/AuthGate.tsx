@@ -47,21 +47,38 @@ function VerifyEmail({ email }: { email: string }) {
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [configError, setConfigError] = useState("");
 
   useEffect(() => {
-    supabase()
-      .auth.getSession()
-      .then(({ data }) => {
-        setSession(data.session);
-        setLoading(false);
-      });
-    const {
-      data: { subscription },
-    } = supabase().auth.onAuthStateChange((_event, next) => setSession(next));
-    return () => subscription.unsubscribe();
+    try {
+      supabase()
+        .auth.getSession()
+        .then(({ data }) => {
+          setSession(data.session);
+          setLoading(false);
+        })
+        .catch((err: Error) => {
+          setConfigError(err.message);
+          setLoading(false);
+        });
+      const {
+        data: { subscription },
+      } = supabase().auth.onAuthStateChange((_event, next) => setSession(next));
+      return () => subscription.unsubscribe();
+    } catch (err) {
+      setConfigError(err instanceof Error ? err.message : "Supabase is not configured.");
+      setLoading(false);
+    }
   }, []);
 
   if (loading) return <p className="center-note">Unfolding the paper…</p>;
+  if (configError)
+    return (
+      <div className="card">
+        <h1>Configuration needed</h1>
+        <p className="error-note">{configError}</p>
+      </div>
+    );
   if (!session) return <Login />;
   if (!session.user.email_confirmed_at)
     return <VerifyEmail email={session.user.email ?? ""} />;

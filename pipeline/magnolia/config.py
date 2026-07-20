@@ -35,13 +35,24 @@ def load_config(require_delivery: bool = True) -> Config:
         elif not value.strip():
             empty.append(name)
     if missing or empty:
-        parts = [f"Fill them in {env_path} (see pipeline/.env.example)."]
+        parts = []
         if missing:
-            parts.insert(0, f"Missing env vars: {', '.join(missing)}")
+            parts.append(f"Missing env vars: {', '.join(missing)}")
         if empty:
-            parts.insert(0 if not missing else 1, f"Empty env vars (key present, no value): {', '.join(empty)}")
-        if empty and not missing:
-            parts.append("If you edited .env in the editor, save the file first - Python reads from disk.")
+            parts.append(f"Empty env vars (key present, no value): {', '.join(empty)}")
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            parts.append(
+                "Running on GitHub Actions — local pipeline/.env is NOT used.\n"
+                "Add these as repository secrets (exact names, no spaces):\n"
+                "  github.com/kierro1209/sunday_news/settings/secrets/actions\n"
+                "Required: GEMINI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, "
+                "RESEND_API_KEY, EMAIL_TO\n"
+                "Optional: EMAIL_FROM, WEB_APP_URL"
+            )
+        else:
+            parts.append(f"Fill them in {env_path} (see pipeline/.env.example).")
+            if empty and not missing:
+                parts.append("If you edited .env in the editor, save the file first - Python reads from disk.")
         raise SystemExit("\n".join(parts))
 
     return Config(

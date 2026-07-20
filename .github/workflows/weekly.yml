@@ -18,6 +18,26 @@ jobs:
           cache: pip
           cache-dependency-path: pipeline/requirements.txt
       - run: pip install -r pipeline/requirements.txt
+      - name: Verify repository secrets
+        shell: bash
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          missing=()
+          for name in GEMINI_API_KEY SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY RESEND_API_KEY EMAIL_TO; do
+            if [ -z "${!name}" ]; then missing+=("$name"); fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "Repository secrets missing or empty: ${missing[*]}"
+            echo "Add them at: Settings -> Secrets and variables -> Actions -> Repository secrets"
+            echo "Local pipeline/.env is NOT uploaded to GitHub and is NOT used by Actions."
+            exit 1
+          fi
+          echo "Required repository secrets are present."
       - name: Build and send weekly edition
         working-directory: pipeline
         env:
