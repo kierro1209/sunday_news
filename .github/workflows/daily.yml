@@ -48,4 +48,11 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           WEB_APP_URL: ${{ secrets.WEB_APP_URL }}
-        run: python -m magnolia.run --kind daily
+        run: |
+          echo "Env vars set (non-empty = has value, empty = no value or only whitespace):"
+          echo "  GEMINI_API_KEY: $([ -n '${{ secrets.GEMINI_API_KEY }}' ] && echo 'set' || echo 'EMPTY')"
+          echo "  SUPABASE_URL: $([ -n '${{ secrets.SUPABASE_URL }}' ] && echo 'set' || echo 'EMPTY')"
+          echo "  SUPABASE_SERVICE_ROLE_KEY: $([ -n '${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' ] && echo 'set' || echo 'EMPTY')"
+          echo "  RESEND_API_KEY: $([ -n '${{ secrets.RESEND_API_KEY }}' ] && echo 'set' || echo 'EMPTY')"
+          echo "  EMAIL_TO: $([ -n '${{ secrets.EMAIL_TO }}' ] && echo 'set' || echo 'EMPTY')"
+          python -m magnolia.run --kind daily
