@@ -55,13 +55,18 @@ def load_config(require_delivery: bool = True) -> Config:
                 parts.append("If you edited .env in the editor, save the file first - Python reads from disk.")
         raise SystemExit("\n".join(parts))
 
+    def clean_secret(val: str) -> str:
+        """Remove control chars that break HTTP headers."""
+        val = val.strip()
+        return "".join(c for c in val if ord(c) >= 32 or c == "\t")
+
     return Config(
-        gemini_api_key=os.environ["GEMINI_API_KEY"].strip(),
+        gemini_api_key=clean_secret(os.environ["GEMINI_API_KEY"]),
         supabase_url=os.environ.get("SUPABASE_URL", "").rstrip("/"),
-        supabase_service_role_key=os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip(),
-        resend_api_key=os.environ.get("RESEND_API_KEY", "").strip(),
-        email_from=os.environ.get("EMAIL_FROM", "The Magnolia Times <onboarding@resend.dev>"),
-        email_to=os.environ.get("EMAIL_TO", "").strip(),
+        supabase_service_role_key=clean_secret(os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")),
+        resend_api_key=clean_secret(os.environ.get("RESEND_API_KEY", "")),
+        email_from=os.environ.get("EMAIL_FROM", "The Magnolia Times <onboarding@resend.dev>").strip(),
+        email_to=clean_secret(os.environ.get("EMAIL_TO", "")),
         web_app_url=os.environ.get("WEB_APP_URL", "").rstrip("/"),
         gemini_model=os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview").strip(),
     )

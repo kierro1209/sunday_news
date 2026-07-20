@@ -48,7 +48,7 @@ def _call_once(api_key: str, model: str, prompt: str) -> dict | list:
     return json.loads(text)
 
 
-def generate_json(api_key: str, model: str, prompt: str, retries: int = 3) -> dict | list:
+def generate_json(api_key: str, model: str, prompt: str, retries: int = 1) -> dict | list:
     """Call Gemini, retrying rate limits and falling back across models."""
     models = [model, *[m for m in FALLBACK_MODELS if m != model]]
     last_error: Exception | None = None
@@ -67,9 +67,9 @@ def generate_json(api_key: str, model: str, prompt: str, retries: int = 3) -> di
                 if status == 404:
                     print(f"  [gemini] {candidate} unavailable ({msg[:120]})")
                     break
-                # Quota / overload — wait, then retry same model a few times.
+                # Quota / overload — short wait, then try fallback.
                 if status in (429, 503):
-                    wait = 20 * (attempt + 1)
+                    wait = 5 * (attempt + 1)
                     print(f"  [gemini] {candidate} {status}, waiting {wait}s…")
                     time.sleep(wait)
                     continue

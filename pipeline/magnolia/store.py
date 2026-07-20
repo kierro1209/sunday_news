@@ -7,11 +7,19 @@ import httpx
 from .config import Config
 
 
+def _sanitize_secret(value: str) -> str:
+    """Strip and validate secret — remove any control characters that httpx would reject."""
+    value = value.strip()
+    # Remove any control chars, newlines, or non-printable bytes
+    value = "".join(c for c in value if ord(c) >= 32 or c == "\t")
+    return value
+
+
 def _headers(cfg: Config) -> dict:
-    key = cfg.supabase_service_role_key.strip()
+    """Build request headers with apikey auth."""
+    key = _sanitize_secret(cfg.supabase_service_role_key)
     return {
         "apikey": key,
-        "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
     }
 
