@@ -48,11 +48,14 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           WEB_APP_URL: ${{ secrets.WEB_APP_URL }}
+          PYTHONUNBUFFERED: "1"
         run: |
-          echo "Env vars set (non-empty = has value, empty = no value or only whitespace):"
-          echo "  GEMINI_API_KEY: $([ -n '${{ secrets.GEMINI_API_KEY }}' ] && echo 'set' || echo 'EMPTY')"
-          echo "  SUPABASE_URL: $([ -n '${{ secrets.SUPABASE_URL }}' ] && echo 'set' || echo 'EMPTY')"
-          echo "  SUPABASE_SERVICE_ROLE_KEY: $([ -n '${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' ] && echo 'set' || echo 'EMPTY')"
-          echo "  RESEND_API_KEY: $([ -n '${{ secrets.RESEND_API_KEY }}' ] && echo 'set' || echo 'EMPTY')"
-          echo "  EMAIL_TO: $([ -n '${{ secrets.EMAIL_TO }}' ] && echo 'set' || echo 'EMPTY')"
+          # Strip all secrets at shell level before Python sees them
+          export GEMINI_API_KEY=$(echo -n "$GEMINI_API_KEY" | tr -d '\r\n\0')
+          export SUPABASE_URL=$(echo -n "$SUPABASE_URL" | tr -d '\r\n\0')
+          export SUPABASE_SERVICE_ROLE_KEY=$(echo -n "$SUPABASE_SERVICE_ROLE_KEY" | tr -d '\r\n\0')
+          export RESEND_API_KEY=$(echo -n "$RESEND_API_KEY" | tr -d '\r\n\0')
+          export EMAIL_TO=$(echo -n "$EMAIL_TO" | tr -d '\r\n\0')
+          export EMAIL_FROM=$(echo -n "$EMAIL_FROM" | tr -d '\r\n\0')
+          export WEB_APP_URL=$(echo -n "$WEB_APP_URL" | tr -d '\r\n\0')
           python -m magnolia.run --kind daily
