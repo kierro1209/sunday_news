@@ -11,13 +11,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Log run start
+        run: |
+          echo "=== Daily edition run starting ==="
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}  Commit: ${{ github.sha }}"
+          echo "Started at (UTC): $(date -u +"%Y-%m-%d %H:%M:%S")"
+
       - uses: actions/checkout@v6
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: pipeline/requirements.txt
-      - run: pip install -r pipeline/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          echo "Python: $(python --version)"
+          pip install -r pipeline/requirements.txt
+          echo "Dependencies installed."
+
       - name: Verify repository secrets
         shell: bash
         env:
@@ -27,9 +41,16 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
+          echo "Checking required repository secrets..."
           missing=()
           for name in GEMINI_API_KEY SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY RESEND_API_KEY EMAIL_TO; do
-            if [ -z "${!name}" ]; then missing+=("$name"); fi
+            value="${!name}"
+            if [ -z "$value" ]; then
+              missing+=("$name")
+              echo "  [MISSING] $name"
+            else
+              echo "  [ok] $name (${#value} chars set)"
+            fi
           done
           if [ ${#missing[@]} -gt 0 ]; then
             echo "Repository secrets missing or empty: ${missing[*]}"
@@ -38,6 +59,7 @@ jobs:
             exit 1
           fi
           echo "Required repository secrets are present."
+
       - name: Build and send daily edition
         working-directory: pipeline
         env:
@@ -49,4 +71,23 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           WEB_APP_URL: ${{ secrets.WEB_APP_URL }}
           PYTHONUNBUFFERED: "1"
-        run: python -m magnolia.run --kind daily
+        run: |
+          echo "Running: python -m magnolia.run --kind daily"
+          python -m magnolia.run --kind daily
+
+      - name: Log run result
+        if: always()
+        run: |
+          echo "=== Daily edition run finished ==="
+          echo "Finished at (UTC): $(date -u +"%Y-%m-%d %H:%M:%S")"
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "Result: SUCCESS"
+          else
+            echo "Result: FAILED (job status: ${{ job.status }})"
+          fi
+          {
+            echo "### Daily edition — ${{ job.status }}"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Triggered by: ${{ github.event_name }}"
+            echo "- Finished at (UTC): $(date -u +"%Y-%m-%d %H:%M:%S")"
+          } >> "$GITHUB_STEP_SUMMARY"
