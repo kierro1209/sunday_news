@@ -15,9 +15,11 @@ from typing import Callable
 
 import feedparser
 import httpx
+import trafilatura
 
 UA = {"User-Agent": "MagnoliaTimes/1.0 (personal newsletter pipeline)"}
 TIMEOUT = 20.0
+ARTICLE_TEXT_LIMIT = 6000
 
 
 def _clean(text: str, limit: int = 400) -> str:
@@ -54,6 +56,26 @@ def _from_feed(url: str, source: str, limit: int) -> list[dict]:
             }
         )
     return items
+
+
+def fetch_article_text(url: str, limit: int = ARTICLE_TEXT_LIMIT) -> str:
+    """Download the real page at `url` and extract just the main article body
+    (no nav/ads/comments) so writers can be grounded in what the source
+    actually says instead of a thin RSS snippet. Returns "" on any failure —
+    callers must fall back to the snippet rather than invent content."""
+    if not url:
+        return ""
+    try:
+        resp = httpx.get(url, headers=UA, timeout=TIMEOUT, follow_redirects=True)
+        resp.raise_for_status()
+        text = trafilatura.extract(resp.text, include_comments=False, include_tables=False) or ""
+        text = re.sub(r"\n{3,}", "\n\n", text).strip()
+        if text:
+            print(f"  [sources] full text: {len(text)} chars from {url[:70]}")
+        return text[:limit]
+    except Exception as exc:  # noqa: BLE001 - fall back to the snippet, never invent
+        print(f"  [sources] full-text fetch FAILED for {url[:70]}: {exc}")
+        return ""
 
 
 def _safe(fetch: Callable[[], list[dict]], label: str) -> list[dict]:
@@ -195,6 +217,12 @@ def gather_daily_candidates() -> dict[str, list[dict]]:
             _safe(lambda: _from_feed(gnews.format(q="San+Francisco"), "Google News SF", 10), "gnews-sf")
             + _safe(lambda: _from_feed(gnews.format(q="Los+Angeles"), "Google News LA", 10), "gnews-la")
         ),
+        "politics": (
+            _safe(lambda: _from_feed("http://feeds.bbci.co.uk/news/world/rss.xml", "BBC World", 12), "bbc-world")
+            + _safe(lambda: _from_feed("https://feeds.npr.org/1014/rss.xml", "NPR Politics", 10), "npr-politics")
+            + _safe(lambda: _from_feed(gnews.format(q="foreign+policy+OR+geopolitics"), "Google News", 10), "gnews-foreign-policy")
+            + _safe(lambda: _from_feed(gnews.format(q="global+economy+OR+economic+policy"), "Google News", 10), "gnews-economy")
+        ),
         "spanish": (
             _safe(lambda: _from_feed("https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", "El País", 12), "elpais")
             + _safe(lambda: _from_feed("https://www.bbc.com/mundo/index.xml", "BBC Mundo", 12), "bbc-mundo")
@@ -203,10 +231,17 @@ def gather_daily_candidates() -> dict[str, list[dict]]:
 
 
 def gather_weekly_candidates() -> dict[str, list[dict]]:
+    gnews = "https://news.google.com/rss/search?q={q}&hl=en-US&gl=US&ceid=US:en"
     return {
         "weekly_ai_paper": (
             _safe(lambda: fetch_arxiv("cat:cs.LG+OR+cat:cs.AI", 25), "arxiv-weekly")
             + _safe(fetch_hn_ml, "hn-weekly")
+        ),
+        "weekly_politics": (
+            _safe(lambda: _from_feed("http://feeds.bbci.co.uk/news/world/rss.xml", "BBC World", 20), "bbc-world-weekly")
+            + _safe(lambda: _from_feed("https://feeds.npr.org/1014/rss.xml", "NPR Politics", 15), "npr-politics-weekly")
+            + _safe(lambda: _from_feed(gnews.format(q="foreign+policy+OR+geopolitics"), "Google News", 15), "gnews-foreign-policy-weekly")
+            + _safe(lambda: _from_feed(gnews.format(q="global+economy+OR+economic+policy"), "Google News", 15), "gnews-economy-weekly")
         ),
         "weekly_spanish": _safe(
             lambda: _from_feed("https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", "El País", 15),

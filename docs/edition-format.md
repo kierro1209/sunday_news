@@ -45,6 +45,12 @@ the reader's preferences, recent feedback, and the history of what already ran
 and target difficulty. **Section writer** calls then file one article each.
 Every section carries exactly one article per edition.
 
+For `"mode": "pick"` sections, the writer also fetches the assigned item's real URL and
+extracts the full article/paper text (see `sources.fetch_article_text`), not just the RSS
+snippet. The resulting `body` is written in two clearly separated markdown parts: a
+faithful recap grounded strictly in that fetched text (no outside claims), followed by a
+"**Why It Matters**" section where the writer's own explanation/analysis is confined.
+
 ## Daily section ids (in print order)
 
 | id                | contents |
@@ -52,6 +58,7 @@ Every section carries exactly one article per edition.
 | `ml_deep_dive`    | 1 ML / data-engineering / AI deep dive; difficulty rotates; recency favored |
 | `startup_biotech` | 1 startup OR biotech story (alternating across days); body explains the technical reasoning behind the move |
 | `biology`         | 1 biology paper or lesson building pharma intuition; body teaches, not just summarizes |
+| `politics`        | 1 politics / foreign-affairs / economic-policy / political-theory story or analysis |
 | `headlines`       | 1 "Wire" digest article whose body is 4-6 bulleted SF & LA briefs with inline source links |
 | `finance`         | 1 combined piece: progressive finance-concept lesson + market overview from real index data |
 | `spanish`         | 1 intermediate Spanish article; body keeps the Spanish text and appends a vocab glossary + 2 comprehension questions |
@@ -62,6 +69,7 @@ Every section carries exactly one article per edition.
 | id                  | contents |
 | ------------------- | -------- |
 | `weekly_ai_paper`   | 1 substantial AI research paper with a longer guided read |
+| `weekly_politics`   | 1 substantial politics / foreign-affairs / economic-policy / political-theory story with deeper treatment |
 | `weekly_finance`    | longer week-in-review market debrief + deeper concept treatment |
 | `weekly_spanish`    | longer Spanish article with glossary and questions |
 | `weekly_journal`    | longer reflective journal prompt |

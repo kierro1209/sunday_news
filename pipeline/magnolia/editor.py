@@ -18,7 +18,12 @@ import uuid
 
 from .config import Config
 from .gemini import generate_json
-from .sources import fetch_market_snapshot, gather_daily_candidates, gather_weekly_candidates
+from .sources import (
+    fetch_article_text,
+    fetch_market_snapshot,
+    gather_daily_candidates,
+    gather_weekly_candidates,
+)
 
 MOTTO = "All the signal that's fit to print"
 CANDIDATE_CAP = 20
@@ -34,7 +39,9 @@ ARTICLE_SHAPE = """The article object must have exactly these keys:
 - "published": the publication date string exactly as given in the source data ("" if in-house)
 - "url": the real source url from the source data ("" for in-house pieces); never invent urls
 - "summary": 1-2 sentence dek under the headline
-- "body": the piece in markdown (short paragraphs; bold key terms; [text](url) links allowed)
+- "body": the piece in markdown (short paragraphs; bold key terms; [text](url) links allowed).
+  When the assignment below asks for a two-part structure, keep the two parts clearly separate
+  under their own markdown headings — never blend your own analysis into the factual recap part.
 - "difficulty": one of "intro", "intermediate", "advanced", or ""
 - "tags": 2-4 lowercase topic tags
 - "why_chosen": one sentence on why this was picked for this reader today"""
@@ -103,9 +110,13 @@ DAILY_SECTIONS: list[dict] = [
         "mode": "pick",
         "brief": "One ML/AI/data-engineering paper, blog post, or article. Favor recent innovations; rotate difficulty across days.",
         "task": (
-            "Write a 300-450 word guided read of the assigned item: what it is, why it "
-            "matters, the key technique explained plainly, and what a data/infra engineer "
-            "should take away."
+            "Write a two-part guided read of the assigned item. First, under a \"**The "
+            "Source**\" heading, faithfully and thoroughly recap what the article/paper "
+            "actually says — the problem, method, and results — drawing ONLY from the "
+            "article text in MATERIAL below, in 350-500 words. Then, under a \"**Why It "
+            "Matters**\" heading, add your own explanation of the key technique in plain "
+            "terms and what a data/infra engineer should take away, in 100-200 words. Keep "
+            "the two parts clearly separate — no outside claims or speculation in the first."
         ),
     },
     {
@@ -115,9 +126,12 @@ DAILY_SECTIONS: list[dict] = [
         "mode": "pick",
         "brief": "One startup OR biotech story. Alternate between startup and biotech across days (check history).",
         "task": (
-            "Cover the assigned story in 200-300 words centered on the TECHNICAL REASONING "
-            "behind the move: the science, the platform bet, or the market mechanics — not "
-            "just what happened."
+            "Cover the assigned story in two parts. First, under \"**The Story**\", "
+            "faithfully report what the article actually says happened, drawing ONLY from "
+            "the article text in MATERIAL below, in 150-250 words. Then, under \"**Why It "
+            "Matters**\", add the TECHNICAL REASONING behind the move — the science, the "
+            "platform bet, or the market mechanics — in 100-175 words. Keep the two parts "
+            "clearly separate — no outside claims or speculation in the first."
         ),
     },
     {
@@ -127,9 +141,32 @@ DAILY_SECTIONS: list[dict] = [
         "mode": "pick",
         "brief": "One biological research paper or topic that builds pharma intuition; should not repeat mechanisms already taught.",
         "task": (
-            "Turn the assigned item into a 250-400 word lesson that builds pharma intuition. "
-            "Teach the underlying biology (mechanism, pathway, modality) at a level a strong "
-            "engineer without a bio background can absorb. Define jargon inline."
+            "Turn the assigned item into a two-part piece. First, under \"**The Research**\", "
+            "faithfully summarize what the article/paper actually reports, drawing ONLY from "
+            "the article text in MATERIAL below, in 200-300 words. Then, under \"**Why It "
+            "Matters**\", build pharma intuition by teaching the underlying biology "
+            "(mechanism, pathway, modality) at a level a strong engineer without a bio "
+            "background can absorb, defining jargon inline, in 125-225 words. Keep the two "
+            "parts clearly separate — no outside claims or speculation in the first."
+        ),
+    },
+    {
+        "id": "politics",
+        "heading": "Statecraft",
+        "kicker": "Politics, foreign affairs & the economy",
+        "mode": "pick",
+        "brief": (
+            "One politics, foreign-affairs, economic-policy, or political-theory story or "
+            "analysis piece — pull from any one of these or a mix; rotate the angle across days."
+        ),
+        "task": (
+            "Cover the assigned story in two parts. First, under \"**The Story**\", "
+            "faithfully report what the article actually says, drawing ONLY from the "
+            "article text in MATERIAL below, in 200-300 words. Then, under \"**Why It "
+            "Matters**\", add the underlying context — the political dynamics, policy "
+            "tradeoffs, economic mechanics, or theoretical framework at play — in 125-200 "
+            "words. Keep the two parts clearly separate — no outside claims or speculation "
+            "in the first."
         ),
     },
     {
@@ -168,10 +205,11 @@ DAILY_SECTIONS: list[dict] = [
         "mode": "pick",
         "brief": "One Spanish-language article suited to an intermediate (B1) learner.",
         "task": (
-            "Using the assigned article: first a 200-300 word retelling of the story IN SPANISH "
-            "at B1 level (simplify from the source; keep it natural), then a \"**Vocabulario**\" "
-            "list of 8-10 words with English translations, then \"**Preguntas**\" with 2 "
-            "comprehension questions in Spanish."
+            "Using the article text in MATERIAL below: first, under \"**El Artículo**\", a "
+            "200-300 word retelling of the story IN SPANISH at B1 level, staying faithful to "
+            "what the source actually reports (simplify the language, not the content; no "
+            "invented details), then a \"**Vocabulario**\" list of 8-10 words with English "
+            "translations, then \"**Preguntas**\" with 2 comprehension questions in Spanish."
         ),
     },
     {
@@ -196,9 +234,33 @@ WEEKLY_SECTIONS: list[dict] = [
         "mode": "pick",
         "brief": "One substantial, recent AI research paper worth an hour of study — heavier than the weekday deep dives, and not one already covered this week.",
         "task": (
-            "Write a 600-900 word guided read of the assigned paper: context, the core method "
-            "with intuition, results and caveats, and how it connects to production ML/data "
-            "infrastructure."
+            "Write a two-part guided read of the assigned paper. First, under \"**The "
+            "Paper**\", faithfully and thoroughly recap the context, method, and results, "
+            "drawing ONLY from the article text in MATERIAL below, in 450-600 words. Then, "
+            "under \"**Why It Matters**\", add your own explanation of the core method with "
+            "intuition, caveats, and how it connects to production ML/data infrastructure, "
+            "in 150-300 words. Keep the two parts clearly separate — no outside claims or "
+            "speculation in the first."
+        ),
+    },
+    {
+        "id": "weekly_politics",
+        "heading": "The Week in Statecraft",
+        "kicker": "Politics, foreign affairs & the economy",
+        "mode": "pick",
+        "brief": (
+            "One substantial politics, foreign-affairs, economic-policy, or "
+            "political-theory story or analysis from the week worth deeper treatment — "
+            "heavier than the weekday piece, and not one already covered this week."
+        ),
+        "task": (
+            "Write a two-part piece on the assigned story. First, under \"**The Story**\", "
+            "faithfully and thoroughly recap what the article actually reports, drawing "
+            "ONLY from the article text in MATERIAL below, in 350-500 words. Then, under "
+            "\"**Why It Matters**\", add deeper context — the political dynamics, policy "
+            "tradeoffs, economic mechanics, or theoretical framework at play, and how it "
+            "connects to the broader week's events — in 200-300 words. Keep the two parts "
+            "clearly separate — no outside claims or speculation in the first."
         ),
     },
     {
@@ -221,9 +283,11 @@ WEEKLY_SECTIONS: list[dict] = [
         "mode": "pick",
         "brief": "One meaty Spanish article for a longer Sunday read.",
         "task": (
-            "Using the assigned article: a 400-550 word B1-B2 retelling in Spanish, a "
-            "\"**Vocabulario**\" list of 12-15 words with translations, then 3 comprehension "
-            "questions plus 1 short writing prompt in Spanish."
+            "Using the article text in MATERIAL below: first, under \"**El Artículo**\", a "
+            "400-550 word B1-B2 retelling in Spanish, staying faithful to what the source "
+            "actually reports (simplify the language, not the content; no invented details), "
+            "then a \"**Vocabulario**\" list of 12-15 words with translations, then 3 "
+            "comprehension questions plus 1 short writing prompt in Spanish."
         ),
     },
     {
@@ -243,6 +307,7 @@ WEEKLY_SECTIONS: list[dict] = [
 # Weekly sections should also avoid repeating their weekday counterparts.
 RELATED_SECTIONS: dict[str, set[str]] = {
     "weekly_ai_paper": {"weekly_ai_paper", "ml_deep_dive"},
+    "weekly_politics": {"weekly_politics", "politics"},
     "weekly_finance": {"weekly_finance", "finance"},
     "weekly_spanish": {"weekly_spanish", "spanish"},
     "weekly_journal": {"weekly_journal", "journal"},
@@ -329,7 +394,20 @@ def write_section(
     if section["mode"] == "pick":
         num = pick.get("candidate_number")
         if isinstance(num, int) and 1 <= num <= len(pool):
-            material = "ASSIGNED ITEM (write about exactly this):\n" + _candidate_line(num, pool[num - 1])
+            item = pool[num - 1]
+            material = "ASSIGNED ITEM METADATA:\n" + _candidate_line(num, item)
+            full_text = fetch_article_text(item.get("url", ""))
+            if full_text:
+                material += (
+                    "\n\nFULL ARTICLE TEXT (the real source content — your factual recap "
+                    "must be based strictly on this, not on outside knowledge):\n" + full_text
+                )
+            else:
+                material += (
+                    "\n\n(Full article text could not be fetched — you only have the "
+                    "snippet above. Keep your factual recap brief and do not add outside "
+                    "claims or invented detail.)"
+                )
         else:
             material = (
                 "CANDIDATES (the chief left the choice to you — pick the single best one):\n"
@@ -362,6 +440,10 @@ MATERIAL:
 {material or '(none — this piece is written in-house)'}
 
 Copy "url", "authors", and "published" exactly from the source data; never invent them.
+When FULL ARTICLE TEXT is present in MATERIAL, it is the real source content — your recap
+of what happened/was found must be grounded strictly in that text, not in your own outside
+knowledge. Confine any analysis, interpretation, or personal relevance to the separate
+closing section the assignment describes; never blend it into the factual recap.
 Write exactly ONE article. {ARTICLE_SHAPE}
 Return a single JSON object (not an array)."""
 
