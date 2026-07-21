@@ -61,7 +61,7 @@ faithful recap grounded strictly in that fetched text (no outside claims), follo
 | `politics`        | 1 politics / foreign-affairs / economic-policy / political-theory story or analysis |
 | `headlines`       | 1 "Wire" digest article whose body is 4-6 bulleted SF & LA briefs with inline source links |
 | `finance`         | 1 combined piece: progressive finance-concept lesson + market overview from real index data |
-| `spanish`         | 1 intermediate Spanish article; body keeps the Spanish text and appends a vocab glossary + 2 comprehension questions |
+| `spanish`         | 1 article from Spain/Colombia/SoCal; body is a faithful Spanish transcription (not simplified) + vocab glossary + 2-3 comprehension questions |
 | `journal`         | 1 short introspection/ambition prompt; no url |
 
 ## Weekly section ids (Sundays, separate edition with kind="weekly")
@@ -71,7 +71,7 @@ faithful recap grounded strictly in that fetched text (no outside claims), follo
 | `weekly_ai_paper`   | 1 substantial AI research paper with a longer guided read |
 | `weekly_politics`   | 1 substantial politics / foreign-affairs / economic-policy / political-theory story with deeper treatment |
 | `weekly_finance`    | longer week-in-review market debrief + deeper concept treatment |
-| `weekly_spanish`    | longer Spanish article with glossary and questions |
+| `weekly_spanish`    | longer faithful Spanish transcription from Spain/Colombia/SoCal with glossary, questions, and a writing prompt |
 | `weekly_journal`    | longer reflective journal prompt |
 
 Renderers must not assume every section is present — if a source or model call

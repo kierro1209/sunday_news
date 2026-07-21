@@ -58,6 +58,27 @@ def _from_feed(url: str, source: str, limit: int) -> list[dict]:
     return items
 
 
+_BOILERPLATE_MARKERS = (
+    "utilizamos datos de navegación",
+    "cookies propias y de terceros",
+    "política de cookies",
+    "aviso de cookies",
+    "contenido exclusivo para suscriptores",
+    "suscríbete para seguir leyendo",
+    "accept cookies",
+    "subscribe to continue reading",
+)
+
+
+def _looks_like_boilerplate(text: str) -> bool:
+    """Some sites (cookie walls, paywalls) return a consent/subscribe notice
+    as the dominant text instead of the real article when fetched without a
+    browser session. Catch the common ones so we never pass that off as the
+    real source to a writer."""
+    head = text[:400].lower()
+    return any(marker in head for marker in _BOILERPLATE_MARKERS)
+
+
 def fetch_article_text(url: str, limit: int = ARTICLE_TEXT_LIMIT) -> str:
     """Download the real page at `url` and extract just the main article body
     (no nav/ads/comments) so writers can be grounded in what the source
@@ -70,6 +91,9 @@ def fetch_article_text(url: str, limit: int = ARTICLE_TEXT_LIMIT) -> str:
         resp.raise_for_status()
         text = trafilatura.extract(resp.text, include_comments=False, include_tables=False) or ""
         text = re.sub(r"\n{3,}", "\n\n", text).strip()
+        if text and _looks_like_boilerplate(text):
+            print(f"  [sources] full-text looked like a cookie/paywall notice, discarding: {url[:70]}")
+            return ""
         if text:
             print(f"  [sources] full text: {len(text)} chars from {url[:70]}")
         return text[:limit]
@@ -224,8 +248,9 @@ def gather_daily_candidates() -> dict[str, list[dict]]:
             + _safe(lambda: _from_feed(gnews.format(q="global+economy+OR+economic+policy"), "Google News", 10), "gnews-economy")
         ),
         "spanish": (
-            _safe(lambda: _from_feed("https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", "El País", 12), "elpais")
-            + _safe(lambda: _from_feed("https://www.bbc.com/mundo/index.xml", "BBC Mundo", 12), "bbc-mundo")
+            _safe(lambda: _from_feed("https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", "El País", 10), "elpais")
+            + _safe(lambda: _from_feed("https://www.eltiempo.com/rss/colombia.xml", "El Tiempo", 8), "eltiempo")
+            + _safe(lambda: _from_feed("https://laopinion.com/feed/", "La Opinión", 8), "laopinion")
         ),
     }
 
@@ -243,8 +268,9 @@ def gather_weekly_candidates() -> dict[str, list[dict]]:
             + _safe(lambda: _from_feed(gnews.format(q="foreign+policy+OR+geopolitics"), "Google News", 15), "gnews-foreign-policy-weekly")
             + _safe(lambda: _from_feed(gnews.format(q="global+economy+OR+economic+policy"), "Google News", 15), "gnews-economy-weekly")
         ),
-        "weekly_spanish": _safe(
-            lambda: _from_feed("https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", "El País", 15),
-            "elpais-weekly",
+        "weekly_spanish": (
+            _safe(lambda: _from_feed("https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", "El País", 12), "elpais-weekly")
+            + _safe(lambda: _from_feed("https://www.eltiempo.com/rss/colombia.xml", "El Tiempo", 10), "eltiempo-weekly")
+            + _safe(lambda: _from_feed("https://laopinion.com/feed/", "La Opinión", 10), "laopinion-weekly")
         ),
     }

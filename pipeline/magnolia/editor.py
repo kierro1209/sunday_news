@@ -203,13 +203,15 @@ DAILY_SECTIONS: list[dict] = [
         "heading": "La Sección en Español",
         "kicker": "Para aprender",
         "mode": "pick",
-        "brief": "One Spanish-language article suited to an intermediate (B1) learner.",
+        "brief": "One Spanish-language article from Spain, Colombia, or Southern California (SoCal).",
         "task": (
-            "Using the article text in MATERIAL below: first, under \"**El Artículo**\", a "
-            "200-300 word retelling of the story IN SPANISH at B1 level, staying faithful to "
-            "what the source actually reports (simplify the language, not the content; no "
-            "invented details), then a \"**Vocabulario**\" list of 8-10 words with English "
-            "translations, then \"**Preguntas**\" with 2 comprehension questions in Spanish."
+            "Using the article text in MATERIAL below: first, under \"**Transcripción**\", a "
+            "faithful transcription of the article IN SPANISH (200-300 words drawn closely "
+            "and directly from the real source text below — do not simplify, paraphrase, or "
+            "dumb down the language; quote/transcribe it as actually written, trimmed for "
+            "length, not rewritten), then a \"**Vocabulario**\" list of 8-10 words from that "
+            "text with English translations. As the follow-up, add \"**Preguntas**\" with 2-3 "
+            "comprehension questions in Spanish based strictly on the transcription above."
         ),
     },
     {
@@ -281,13 +283,16 @@ WEEKLY_SECTIONS: list[dict] = [
         "heading": "Lectura del Domingo",
         "kicker": "Español extendido",
         "mode": "pick",
-        "brief": "One meaty Spanish article for a longer Sunday read.",
+        "brief": "One meaty Spanish article from Spain, Colombia, or Southern California (SoCal) for a longer Sunday read.",
         "task": (
-            "Using the article text in MATERIAL below: first, under \"**El Artículo**\", a "
-            "400-550 word B1-B2 retelling in Spanish, staying faithful to what the source "
-            "actually reports (simplify the language, not the content; no invented details), "
-            "then a \"**Vocabulario**\" list of 12-15 words with translations, then 3 "
-            "comprehension questions plus 1 short writing prompt in Spanish."
+            "Using the article text in MATERIAL below: first, under \"**Transcripción**\", a "
+            "longer faithful transcription of the article IN SPANISH (400-550 words drawn "
+            "closely and directly from the real source text below — do not simplify, "
+            "paraphrase, or dumb down the language; quote/transcribe it as actually written, "
+            "trimmed for length, not rewritten), then a \"**Vocabulario**\" list of 12-15 "
+            "words from that text with translations. As the follow-up, add 3 comprehension "
+            "questions plus 1 short writing prompt in Spanish, based strictly on the "
+            "transcription above."
         ),
     },
     {
