@@ -8,8 +8,11 @@ from .config import Config
 
 
 def _headers(cfg: Config) -> dict:
+    # PostgREST needs both: apikey identifies the project, Authorization carries
+    # the JWT that determines the role for RLS. Service-role key doubles as both.
     return {
         "apikey": cfg.supabase_service_role_key,
+        "Authorization": f"Bearer {cfg.supabase_service_role_key}",
         "Content-Type": "application/json",
     }
 

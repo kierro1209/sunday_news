@@ -23,6 +23,22 @@ def _parse_error(resp: httpx.Response) -> str:
         return resp.text[:200]
 
 
+def _parse_json_body(text: str) -> dict | list:
+    """Gemini occasionally wraps JSON in markdown fences or appends trailing
+    tokens after a complete JSON value, which json.loads() rejects outright.
+    Strip fences, then decode just the first valid JSON value and ignore
+    anything after it."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
+    decoder = json.JSONDecoder()
+    value, _ = decoder.raw_decode(text)
+    return value
+
+
 def _call_once(api_key: str, model: str, prompt: str) -> dict | list:
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -45,7 +61,7 @@ def _call_once(api_key: str, model: str, prompt: str) -> dict | list:
             response=resp,
         )
     text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-    return json.loads(text)
+    return _parse_json_body(text)
 
 
 def generate_json(api_key: str, model: str, prompt: str, retries: int = 1) -> dict | list:
