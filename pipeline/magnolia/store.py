@@ -17,6 +17,20 @@ def _headers(cfg: Config) -> dict:
     }
 
 
+def _raise_with_body(resp: httpx.Response) -> None:
+    """PostgREST/GoTrue put the actual reason in the JSON body (e.g. "JWT
+    expired", "Invalid API key", "role ... does not exist") — surface it
+    instead of just the generic '401 Unauthorized'."""
+    if resp.is_success:
+        return
+    try:
+        detail = resp.json()
+    except Exception:
+        detail = resp.text[:300]
+    print(f"[store] {resp.status_code} from {resp.request.method} {resp.request.url.path}: {detail}")
+    resp.raise_for_status()
+
+
 def save_edition(cfg: Config, edition: dict) -> str:
     """Upsert the edition (idempotent re-runs) and return its id."""
     resp = httpx.post(
@@ -33,7 +47,7 @@ def save_edition(cfg: Config, edition: dict) -> str:
         },
         timeout=30.0,
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
     return resp.json()[0]["id"]
 
 
@@ -45,7 +59,7 @@ def load_preferences(cfg: Config) -> dict:
         params={"select": "prefs"},
         timeout=30.0,
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
     merged: dict = {}
     for row in resp.json():
         merged.update(row.get("prefs") or {})
@@ -65,7 +79,7 @@ def load_recent_history(cfg: Config, editions: int = 16) -> list[dict]:
         },
         timeout=30.0,
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
     history = []
     for row in resp.json():
         for section in (row.get("content") or {}).get("sections", []):
@@ -95,5 +109,5 @@ def load_recent_feedback(cfg: Config, limit: int = 40) -> list[dict]:
         },
         timeout=30.0,
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
     return resp.json()
