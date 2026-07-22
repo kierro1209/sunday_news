@@ -46,6 +46,15 @@ ARTICLE_SHAPE = """The article object must have exactly these keys:
 - "tags": 2-4 lowercase topic tags
 - "why_chosen": one sentence on why this was picked for this reader today"""
 
+SOURCE_REPORTING_RULES = """SOURCE REPORTING RULES for externally sourced pieces:
+- Report only claims supported by FULL ARTICLE TEXT (or by the snippet when full text is unavailable).
+- Preserve names, numbers, dates, qualifications, uncertainty, and chronology accurately.
+- Do not add facts, opinions, motives, or causal claims to the source-reporting portion.
+- Do not reproduce the entire source article verbatim. Write a close, faithful recap in your
+  own words; a short quotation is allowed only when the exact wording is materially important.
+- Put all interpretation and reader-specific context at the very bottom under the exact
+  markdown heading "**Relevance / Importance**". Never blend it into the factual recap."""
+
 
 # --- prompt building blocks --------------------------------------------------
 
@@ -113,8 +122,8 @@ DAILY_SECTIONS: list[dict] = [
             "Write a two-part guided read of the assigned item. First, under a \"**The "
             "Source**\" heading, faithfully and thoroughly recap what the article/paper "
             "actually says — the problem, method, and results — drawing ONLY from the "
-            "article text in MATERIAL below, in 350-500 words. Then, under a \"**Why It "
-            "Matters**\" heading, add your own explanation of the key technique in plain "
+            "article text in MATERIAL below, in 350-500 words. Then, at the bottom under "
+            "\"**Relevance / Importance**\", add your own explanation of the key technique in plain "
             "terms and what a data/infra engineer should take away, in 100-200 words. Keep "
             "the two parts clearly separate — no outside claims or speculation in the first."
         ),
@@ -128,8 +137,8 @@ DAILY_SECTIONS: list[dict] = [
         "task": (
             "Cover the assigned story in two parts. First, under \"**The Story**\", "
             "faithfully report what the article actually says happened, drawing ONLY from "
-            "the article text in MATERIAL below, in 150-250 words. Then, under \"**Why It "
-            "Matters**\", add the TECHNICAL REASONING behind the move — the science, the "
+            "the article text in MATERIAL below, in 150-250 words. Then, at the bottom under "
+            "\"**Relevance / Importance**\", add the TECHNICAL REASONING behind the move — the science, the "
             "platform bet, or the market mechanics — in 100-175 words. Keep the two parts "
             "clearly separate — no outside claims or speculation in the first."
         ),
@@ -143,8 +152,8 @@ DAILY_SECTIONS: list[dict] = [
         "task": (
             "Turn the assigned item into a two-part piece. First, under \"**The Research**\", "
             "faithfully summarize what the article/paper actually reports, drawing ONLY from "
-            "the article text in MATERIAL below, in 200-300 words. Then, under \"**Why It "
-            "Matters**\", build pharma intuition by teaching the underlying biology "
+            "the article text in MATERIAL below, in 200-300 words. Then, at the bottom under "
+            "\"**Relevance / Importance**\", build pharma intuition by teaching the underlying biology "
             "(mechanism, pathway, modality) at a level a strong engineer without a bio "
             "background can absorb, defining jargon inline, in 125-225 words. Keep the two "
             "parts clearly separate — no outside claims or speculation in the first."
@@ -162,8 +171,8 @@ DAILY_SECTIONS: list[dict] = [
         "task": (
             "Cover the assigned story in two parts. First, under \"**The Story**\", "
             "faithfully report what the article actually says, drawing ONLY from the "
-            "article text in MATERIAL below, in 200-300 words. Then, under \"**Why It "
-            "Matters**\", add the underlying context — the political dynamics, policy "
+            "article text in MATERIAL below, in 200-300 words. Then, at the bottom under "
+            "\"**Relevance / Importance**\", add the underlying context — the political dynamics, policy "
             "tradeoffs, economic mechanics, or theoretical framework at play — in 125-200 "
             "words. Keep the two parts clearly separate — no outside claims or speculation "
             "in the first."
@@ -205,13 +214,14 @@ DAILY_SECTIONS: list[dict] = [
         "mode": "pick",
         "brief": "One Spanish-language article from Spain, Colombia, or Southern California (SoCal).",
         "task": (
-            "Using the article text in MATERIAL below: first, under \"**Transcripción**\", a "
-            "faithful transcription of the article IN SPANISH (200-300 words drawn closely "
-            "and directly from the real source text below — do not simplify, paraphrase, or "
-            "dumb down the language; quote/transcribe it as actually written, trimmed for "
-            "length, not rewritten), then a \"**Vocabulario**\" list of 8-10 words from that "
-            "text with English translations. As the follow-up, add \"**Preguntas**\" with 2-3 "
-            "comprehension questions in Spanish based strictly on the transcription above."
+            "Using the article text in MATERIAL below, write a faithful 200-300 word recap "
+            "IN SPANISH under \"**El artículo**\". Preserve the source's facts, names, dates, "
+            "numbers, nuance, and level of language; do not invent details or simplify it into "
+            "an in-house lesson. Then add \"**Vocabulario**\" with 8-10 words from the source "
+            "and English translations, followed by \"**Preguntas**\" with 2-3 comprehension "
+            "questions based strictly on the recap. Finish at the bottom with "
+            "\"**Relevance / Importance**\" and 2-3 concise sentences explaining why the "
+            "reported story matters, clearly separate from what the outlet reported."
         ),
     },
     {
@@ -219,11 +229,14 @@ DAILY_SECTIONS: list[dict] = [
         "heading": "The Examined Life",
         "kicker": "Journal prompt",
         "mode": "generate",
-        "brief": "One short introspection/ambition journal prompt; vary the angle from recent days.",
+        "brief": "One short emotional-introspection journal prompt; vary the angle from recent days.",
         "task": (
-            "Write ONE short journal prompt (2-4 sentences) about introspection and ambition. "
-            "Make it specific and answerable in ten minutes, not generic. Vary the angle from "
-            "what already ran. url \"\", byline \"The Editors\", publication \"The Magnolia Times\"."
+            "Write ONE short journal prompt (2-4 sentences) centered on emotional introspection: "
+            "feelings being avoided, unmet needs, recurring reactions, relationships, self-trust, "
+            "grief, joy, shame, vulnerability, or inner conflict. Make it gentle, specific, and "
+            "answerable in ten minutes. Do not make career, productivity, achievement, or ambition "
+            "the main subject. Vary the emotional angle from what already ran. url \"\", byline "
+            "\"The Editors\", publication \"The Magnolia Times\"."
         ),
     },
 ]
@@ -239,7 +252,7 @@ WEEKLY_SECTIONS: list[dict] = [
             "Write a two-part guided read of the assigned paper. First, under \"**The "
             "Paper**\", faithfully and thoroughly recap the context, method, and results, "
             "drawing ONLY from the article text in MATERIAL below, in 450-600 words. Then, "
-            "under \"**Why It Matters**\", add your own explanation of the core method with "
+            "at the bottom under \"**Relevance / Importance**\", add your own explanation of the core method with "
             "intuition, caveats, and how it connects to production ML/data infrastructure, "
             "in 150-300 words. Keep the two parts clearly separate — no outside claims or "
             "speculation in the first."
@@ -258,8 +271,8 @@ WEEKLY_SECTIONS: list[dict] = [
         "task": (
             "Write a two-part piece on the assigned story. First, under \"**The Story**\", "
             "faithfully and thoroughly recap what the article actually reports, drawing "
-            "ONLY from the article text in MATERIAL below, in 350-500 words. Then, under "
-            "\"**Why It Matters**\", add deeper context — the political dynamics, policy "
+            "ONLY from the article text in MATERIAL below, in 350-500 words. Then, at the bottom under "
+            "\"**Relevance / Importance**\", add deeper context — the political dynamics, policy "
             "tradeoffs, economic mechanics, or theoretical framework at play, and how it "
             "connects to the broader week's events — in 200-300 words. Keep the two parts "
             "clearly separate — no outside claims or speculation in the first."
@@ -285,14 +298,14 @@ WEEKLY_SECTIONS: list[dict] = [
         "mode": "pick",
         "brief": "One meaty Spanish article from Spain, Colombia, or Southern California (SoCal) for a longer Sunday read.",
         "task": (
-            "Using the article text in MATERIAL below: first, under \"**Transcripción**\", a "
-            "longer faithful transcription of the article IN SPANISH (400-550 words drawn "
-            "closely and directly from the real source text below — do not simplify, "
-            "paraphrase, or dumb down the language; quote/transcribe it as actually written, "
-            "trimmed for length, not rewritten), then a \"**Vocabulario**\" list of 12-15 "
-            "words from that text with translations. As the follow-up, add 3 comprehension "
-            "questions plus 1 short writing prompt in Spanish, based strictly on the "
-            "transcription above."
+            "Using the article text in MATERIAL below, write a faithful 400-550 word recap "
+            "IN SPANISH under \"**El artículo**\". Preserve the source's facts, names, dates, "
+            "numbers, nuance, and level of language; do not invent details or simplify it into "
+            "an in-house lesson. Then add \"**Vocabulario**\" with 12-15 words from the source "
+            "and English translations, followed by 3 comprehension questions and 1 short "
+            "writing prompt in Spanish based strictly on the recap. Finish at the bottom with "
+            "\"**Relevance / Importance**\" and a concise paragraph explaining why the "
+            "reported story matters, clearly separate from what the outlet reported."
         ),
     },
     {
@@ -300,11 +313,14 @@ WEEKLY_SECTIONS: list[dict] = [
         "heading": "The Examined Life, Extended",
         "kicker": "Sunday journal",
         "mode": "generate",
-        "brief": "One longer reflective Sunday journal prompt.",
+        "brief": "One longer Sunday prompt for emotional reflection and self-understanding.",
         "task": (
-            "Write ONE longer Sunday journal prompt: a short framing paragraph plus 3-4 linked "
-            "questions reviewing the week and pointing at ambition for the next. url \"\", "
-            "byline \"The Editors\", publication \"The Magnolia Times\"."
+            "Write ONE longer Sunday journal prompt centered on emotional introspection: a "
+            "gentle framing paragraph plus 3-4 linked questions exploring the week's feelings, "
+            "needs, relationships, avoided emotions, moments of aliveness, or recurring inner "
+            "patterns. End with one compassionate intention for the coming week. Do not center "
+            "career, productivity, achievement, or ambition. url \"\", byline \"The Editors\", "
+            "publication \"The Magnolia Times\"."
         ),
     },
 ]
@@ -396,27 +412,32 @@ def write_section(
 ) -> dict:
     sid = section["id"]
     material = ""
+    selected_item: dict | None = None
     if section["mode"] == "pick":
         num = pick.get("candidate_number")
         if isinstance(num, int) and 1 <= num <= len(pool):
-            item = pool[num - 1]
-            material = "ASSIGNED ITEM METADATA:\n" + _candidate_line(num, item)
-            full_text = fetch_article_text(item.get("url", ""))
-            if full_text:
-                material += (
-                    "\n\nFULL ARTICLE TEXT (the real source content — your factual recap "
-                    "must be based strictly on this, not on outside knowledge):\n" + full_text
-                )
-            else:
-                material += (
-                    "\n\n(Full article text could not be fetched — you only have the "
-                    "snippet above. Keep your factual recap brief and do not add outside "
-                    "claims or invented detail.)"
-                )
+            selected_item = pool[num - 1]
         else:
+            if not pool:
+                raise RuntimeError(f"no sourced candidates available for {sid}")
+            selected_item = pool[0]
+            num = 1
+            print(f"  [editor] {sid}: chief pick unavailable; using newest sourced candidate")
+
+        material = "ASSIGNED ITEM METADATA:\n" + _candidate_line(num, selected_item)
+        full_text = fetch_article_text(selected_item.get("url", ""))
+        if full_text:
             material = (
-                "CANDIDATES (the chief left the choice to you — pick the single best one):\n"
-                + _candidates_block(pool)
+                material
+                + "\n\nFULL ARTICLE TEXT (the real source content — your factual recap "
+                "must be based strictly on this, not on outside knowledge):\n"
+                + full_text
+            )
+        else:
+            material += (
+                "\n\n(Full article text could not be fetched — you only have the "
+                "snippet above. Keep your factual recap brief and do not add outside "
+                "claims or invented detail.)"
             )
     elif section["mode"] == "pool":
         material = "CANDIDATE ITEMS for the digest:\n" + _candidates_block(pool)
@@ -444,6 +465,8 @@ PREVIOUSLY RUN IN THIS SECTION (do not repeat topics or lessons):
 MATERIAL:
 {material or '(none — this piece is written in-house)'}
 
+{SOURCE_REPORTING_RULES if section["mode"] == "pick" else ""}
+
 Copy "url", "authors", and "published" exactly from the source data; never invent them.
 When FULL ARTICLE TEXT is present in MATERIAL, it is the real source content — your recap
 of what happened/was found must be grounded strictly in that text, not in your own outside
@@ -464,6 +487,23 @@ Return a single JSON object (not an array)."""
         ("difficulty", ""), ("tags", []), ("why_chosen", ""), ("summary", ""), ("byline", ""),
     ):
         result.setdefault(key, default)
+
+    # Gemini must never be allowed to turn a sourced section into an in-house
+    # article or alter source metadata. Enforce the selected feed item after
+    # generation rather than relying on prompt compliance.
+    if selected_item is not None:
+        authors = selected_item.get("authors", [])
+        result["url"] = selected_item.get("url", "")
+        result["authors"] = authors
+        result["publication"] = selected_item.get("source", "")
+        result["published"] = selected_item.get("published", "")
+        result["byline"] = (
+            f"{', '.join(author['name'] for author in authors)} · {result['publication']}"
+            if authors
+            else result["publication"]
+        )
+        if sid in ("spanish", "weekly_spanish"):
+            result["headline"] = selected_item.get("title", result["headline"])
     return result
 
 

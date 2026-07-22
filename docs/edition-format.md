@@ -47,9 +47,11 @@ Every section carries exactly one article per edition.
 
 For `"mode": "pick"` sections, the writer also fetches the assigned item's real URL and
 extracts the full article/paper text (see `sources.fetch_article_text`), not just the RSS
-snippet. The resulting `body` is written in two clearly separated markdown parts: a
-faithful recap grounded strictly in that fetched text (no outside claims), followed by a
-"**Why It Matters**" section where the writer's own explanation/analysis is confined.
+snippet. The resulting `body` contains a faithful source-grounded recap (not a full
+verbatim republication), followed at the bottom by a clearly separated
+"**Relevance / Importance**" section. Source URL, outlet, authors, publication date, and
+byline are enforced from the selected feed item after generation, so Gemini cannot turn a
+sourced section into an in-house article.
 
 ## Daily section ids (in print order)
 
@@ -61,8 +63,8 @@ faithful recap grounded strictly in that fetched text (no outside claims), follo
 | `politics`        | 1 politics / foreign-affairs / economic-policy / political-theory story or analysis |
 | `headlines`       | 1 "Wire" digest article whose body is 4-6 bulleted SF & LA briefs with inline source links |
 | `finance`         | 1 combined piece: progressive finance-concept lesson + market overview from real index data |
-| `spanish`         | 1 article from Spain/Colombia/SoCal; body is a faithful Spanish transcription (not simplified) + vocab glossary + 2-3 comprehension questions |
-| `journal`         | 1 short introspection/ambition prompt; no url |
+| `spanish`         | 1 sourced article from Spain/Colombia/SoCal; faithful Spanish recap + vocabulary + questions + separate relevance note |
+| `journal`         | 1 short emotional-introspection prompt; no url |
 
 ## Weekly section ids (Sundays, separate edition with kind="weekly")
 
@@ -71,8 +73,8 @@ faithful recap grounded strictly in that fetched text (no outside claims), follo
 | `weekly_ai_paper`   | 1 substantial AI research paper with a longer guided read |
 | `weekly_politics`   | 1 substantial politics / foreign-affairs / economic-policy / political-theory story with deeper treatment |
 | `weekly_finance`    | longer week-in-review market debrief + deeper concept treatment |
-| `weekly_spanish`    | longer faithful Spanish transcription from Spain/Colombia/SoCal with glossary, questions, and a writing prompt |
-| `weekly_journal`    | longer reflective journal prompt |
+| `weekly_spanish`    | longer sourced Spanish recap from Spain/Colombia/SoCal with vocabulary, questions, writing prompt, and relevance note |
+| `weekly_journal`    | longer emotional-reflection journal prompt |
 
 Renderers must not assume every section is present — if a source or model call
 failed, the pipeline drops that section rather than blocking the paper.
